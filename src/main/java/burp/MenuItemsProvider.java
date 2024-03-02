@@ -30,7 +30,7 @@ public class MenuItemsProvider implements ContextMenuItemsProvider {
     public List<Component> provideMenuItems(ContextMenuEvent event) {
         List<Component> menuItemList = new ArrayList<>();
 
-        JMenuItem pasteItem = new JMenuItem("Paste cURL request");
+        JMenuItem pasteItem = new JMenuItem("Paste cURL command");
         pasteItem.addActionListener((ActionEvent e) -> {
             //get cURL request from clipboard
             String curlRequest = getClipboardContent();
