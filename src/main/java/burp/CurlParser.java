@@ -2,6 +2,7 @@ package burp;
 
 import burp.api.montoya.http.message.HttpHeader;
 import burp.api.montoya.internal.ObjectFactoryLocator;
+import burp.api.montoya.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 public class CurlParser {
 
     public static CurlRequest parseCurlCommand(String curlCommand) {
+
         String requestMethod = "GET";
         String protocol = null;
         String host = null;
@@ -32,28 +34,28 @@ public class CurlParser {
         }
 
         // Extract protocol
-        Pattern protocolPattern = Pattern.compile("curl '([^:]+)://");
+        Pattern protocolPattern = Pattern.compile("(https?)://");
         Matcher protocolMatcher = protocolPattern.matcher(curlCommand);
         if (protocolMatcher.find()) {
             protocol = protocolMatcher.group(1);
         }
 
         // Extract host
-        Pattern hostPattern = Pattern.compile("curl '[^:]+://([^/]+)/");
+        Pattern hostPattern = Pattern.compile("curl ['\"]?[^:]+://([^/]+)/");
         Matcher hostMatcher = hostPattern.matcher(curlCommand);
         if (hostMatcher.find()) {
             host = hostMatcher.group(1);
         }
 
         // Extract path
-        Pattern pathPattern = Pattern.compile("curl '[^:]+://[^/]+(/[^' ]+)'");
+        Pattern pathPattern = Pattern.compile("curl ['\"]?[^:]+://[^/]+(/[^'\" ]+)(?:['\"]|(?=\\s|$))"); 
         Matcher pathMatcher = pathPattern.matcher(curlCommand);
         if (pathMatcher.find()) {
             path = pathMatcher.group(1);
         }
 
         // Extract headers
-        Pattern headerPattern = Pattern.compile("-H '([^']+)'");
+        Pattern headerPattern = Pattern.compile("-H ['\"]?([^'\"]+)['\"]?");
         Matcher headerMatcher = headerPattern.matcher(curlCommand);
         while (headerMatcher.find()) {
             String header = headerMatcher.group(1);
@@ -61,7 +63,8 @@ public class CurlParser {
             if (colonIndex != -1) {
                 String name = header.substring(0, colonIndex).trim();
                 String value = header.substring(colonIndex + 1).trim();
-                HttpHeader httpHeader = ObjectFactoryLocator.FACTORY.httpHeader(name, value);
+
+                HttpHeader httpHeader = new HttpHeaderImpl(name, value);
                 headers.add(httpHeader);
             }
         }
