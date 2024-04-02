@@ -129,4 +129,27 @@ class CurlParserTest {
 
     }
 
+    @Test
+    public void parseExplicitGet() {
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl -X \"GET\" \"https://api.sendgrid.com/v3/templates\" -H \"Authorization: Bearer Your.API.Key-HERE\" -H \"Content-Type: application/json\"");
+
+        assertNotNull(request);
+        assertEquals("GET", request.getMethod());
+        assertEquals("https", request.getProtocol());
+        assertEquals("api.sendgrid.com", request.getHost());
+        assertEquals("/v3/templates", request.getPath());
+
+        // Test headers
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(2, headers.size());
+
+        HttpHeader header0 = headers.get(0);
+        assertEquals("Authorization", header0.name());
+        assertEquals("Bearer Your.API.Key-HERE", header0.value());
+
+        HttpHeader header1 = headers.get(1);
+        assertEquals("Content-Type", header1.name());
+        assertEquals("application/json", header1.value());
+    }
+
 }

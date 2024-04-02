@@ -48,7 +48,7 @@ public class CurlParser {
         }
 
         // Extract path
-        Pattern pathPattern = Pattern.compile("curl ['\"]?[^:]+://[^/]+(/[^'\" ]+)(?:['\"]|(?=\\s|$))"); 
+        Pattern pathPattern = Pattern.compile("curl ['\"]?[^:]+://[^/]+(/[^'\" ]+)(?:['\"]|(?=\\s|$))");
         Matcher pathMatcher = pathPattern.matcher(curlCommand);
         if (pathMatcher.find()) {
             path = pathMatcher.group(1);
