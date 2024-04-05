@@ -1,8 +1,6 @@
 package burp;
 
 import burp.api.montoya.http.message.HttpHeader;
-import burp.api.montoya.internal.ObjectFactoryLocator;
-import burp.api.montoya.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.List;
