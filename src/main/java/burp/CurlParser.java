@@ -68,11 +68,11 @@ public class CurlParser {
         }
 
         // Extract request body
-        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+'(.*?)'");
+        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+(['\"])(.*?)(\\1)");
         Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
 
         if (bodyMatcher.find()) {
-            body = bodyMatcher.group(1);
+            body = bodyMatcher.group(2);
             // If -X option is not specified and --data-raw is present, assume it's a POST request
             if (requestMethod == null || "GET".equals(requestMethod)) {
                 requestMethod = "POST";

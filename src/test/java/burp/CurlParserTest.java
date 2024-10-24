@@ -107,6 +107,28 @@ class CurlParserTest {
     }
 
     @Test
+    public void parseDoubleQuotedJson() {
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl 'https://example.com/api/endpoint' -H 'Content-Type: application/json' -d \"{'key': 'value'}\"");
+
+        assertNotNull(request);
+        assertEquals("POST", request.getMethod());
+        assertEquals("https", request.getProtocol());
+        assertEquals("example.com", request.getHost());
+        assertEquals("/api/endpoint", request.getPath());
+
+        // Test headers
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(1, headers.size());
+
+        HttpHeader header = headers.get(0);
+        assertEquals("Content-Type", header.name());
+        assertEquals("application/json", header.value());
+
+        //test body
+        assertEquals("{'key': 'value'}", request.getBody());
+    }
+
+    @Test
     public void parseExplicitPut() {
         CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl -X PUT 'https://example.com/api/endpoint' -H 'Content-Type: application/json' --data-raw '{\"key\": \"value\"}'");
 
