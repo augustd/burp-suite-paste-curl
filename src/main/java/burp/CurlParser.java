@@ -68,7 +68,7 @@ public class CurlParser {
         }
 
         // Extract request body
-        Pattern bodyPattern = Pattern.compile("--data-raw '(.+?)'");
+        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+'(.*?)'");
         Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
 
         if (bodyMatcher.find()) {
