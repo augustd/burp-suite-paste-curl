@@ -39,17 +39,17 @@ public class CurlParser {
         }
 
         // Extract host
-        Pattern hostPattern = Pattern.compile("curl ['\"]?[^:]+://([^/]+)/");
+        Pattern hostPattern = Pattern.compile("['\"]?[^:]+://([^/]+)/");
         Matcher hostMatcher = hostPattern.matcher(curlCommand);
         if (hostMatcher.find()) {
             host = hostMatcher.group(1);
         }
 
         // Extract path
-        Pattern pathPattern = Pattern.compile("curl ['\"]?[^:]+://[^/]+(/[^'\" ]+)(?:['\"]|(?=\\s|$))");
+        Pattern pathPattern = Pattern.compile("['\"]?[^:]+://[^/]+(/[^'\" ]+)(?:['\"]|(?=\\s|$))");
         Matcher pathMatcher = pathPattern.matcher(curlCommand);
         if (pathMatcher.find()) {
-            path = pathMatcher.group(1);
+            path = pathMatcher.group(1).trim();
         }
 
         // Extract headers

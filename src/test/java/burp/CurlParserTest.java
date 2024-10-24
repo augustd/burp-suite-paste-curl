@@ -152,4 +152,35 @@ class CurlParserTest {
         assertEquals("application/json", header1.value());
     }
 
+    @Test
+    public void parseGithubMultiline() {
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl -L \\\n" +
+                "  -H \"Accept: application/vnd.github+json\" \\\n" +
+                "  -H \"Authorization: Bearer <YOUR-TOKEN>\" \\\n" +
+                "  -H \"X-GitHub-Api-Version: 2022-11-28\" \\\n" +
+                "  https://api.github.com/repos/OWNER/REPO/contents/PATH");
+
+        assertNotNull(request);
+        assertEquals("GET", request.getMethod());
+        assertEquals("https", request.getProtocol());
+        assertEquals("api.github.com", request.getHost());
+        assertEquals("/repos/OWNER/REPO/contents/PATH", request.getPath());
+
+        // Test headers
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(3, headers.size());
+
+        HttpHeader header0 = headers.get(0);
+        assertEquals("Accept", header0.name());
+        assertEquals("application/vnd.github+json", header0.value());
+
+        HttpHeader header1 = headers.get(1);
+        assertEquals("Authorization", header1.name());
+        assertEquals("Bearer <YOUR-TOKEN>", header1.value());
+
+        HttpHeader header2 = headers.get(2);
+        assertEquals("X-GitHub-Api-Version", header2.name());
+        assertEquals("2022-11-28", header2.value());
+    }
+
 }
