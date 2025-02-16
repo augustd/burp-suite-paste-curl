@@ -68,15 +68,27 @@ public class CurlParser {
         }
 
         // Extract request body
-        Pattern bodyPattern = Pattern.compile("--data-raw '(.+?)'");
+        // Pattern bodyPattern = Pattern.compile("--data-raw '(.+?)'");
+        // Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
+
+        // if (bodyMatcher.find()) {
+        //     body = bodyMatcher.group(1);
+        //     // If -X option is not specified and --data-raw is present, assume it's a POST request
+        //     if (requestMethod == null || "GET".equals(requestMethod)) {
+        //         requestMethod = "POST";
+        //     }
+        // }
+
+        // Updated regex to support all request body options used in cURL
+        Pattern bodyPattern = Pattern.compile(
+            "(?:-d|--data(?:-raw|-binary|-urlencode)?|--json)\\s+(['\"])([\\s\\S]+?)\\1" +  // Matches -d, --data, --json, etc.
+            "|-F\\s+(['\"])([\\s\\S]+?)\\3"                                                // Matches -F (multipart form-data)
+        );
+
         Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
 
         if (bodyMatcher.find()) {
-            body = bodyMatcher.group(1);
-            // If -X option is not specified and --data-raw is present, assume it's a POST request
-            if (requestMethod == null || "GET".equals(requestMethod)) {
-                requestMethod = "POST";
-            }
+            body = bodyMatcher.group(2) != null ? bodyMatcher.group(2) : bodyMatcher.group(4);
         }
 
         if (host != null && path != null) {
