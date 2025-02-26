@@ -10,6 +10,19 @@ import static org.junit.jupiter.api.Assertions.*;
 class CurlParserTest {
 
     @Test
+    public void parseLocalhost() {
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl http://localhost:8000");
+
+        assertNotNull(request);
+        assertEquals("http", request.getProtocol());
+        assertEquals("localhost", request.getHost());
+        assertEquals("/", request.getPath());
+        assertEquals(8000, request.getPort());
+
+        assertEquals("http://localhost:8000/", request.getBaseUrl());
+    }
+
+    @Test
     public void parseQuoted() {
         CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl 'https://company.co/api/whoami' -H 'Authorization: Bearer XXX'");
 
@@ -17,6 +30,8 @@ class CurlParserTest {
         assertEquals("https", request.getProtocol());
         assertEquals("company.co", request.getHost());
         assertEquals("/api/whoami", request.getPath());
+
+        assertEquals("https://company.co/api/whoami", request.getBaseUrl());
 
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
@@ -36,6 +51,8 @@ class CurlParserTest {
         assertEquals("company.co", request.getHost());
         assertEquals("/api/whoami", request.getPath());
 
+        assertEquals("https://company.co/api/whoami", request.getBaseUrl());
+
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
         assertEquals(1, headers.size());
@@ -54,6 +71,8 @@ class CurlParserTest {
         assertEquals("company.co", request.getHost());
         assertEquals("/api/whoami", request.getPath());
 
+        assertEquals("https://company.co/api/whoami", request.getBaseUrl());
+
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
         assertEquals(1, headers.size());
@@ -66,6 +85,8 @@ class CurlParserTest {
     @Test
     public void parseMultiHeader() {
         CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl https://company.co/api/endpoint -H 'Authorization: Bearer XXX' -H 'content-type: application/json' -H 'accept: application/json, text/plain, */*' ");
+
+        assertEquals("https://company.co/api/endpoint", request.getBaseUrl());
 
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
@@ -94,6 +115,8 @@ class CurlParserTest {
         assertEquals("example.com", request.getHost());
         assertEquals("/api/endpoint", request.getPath());
 
+        assertEquals("https://example.com/api/endpoint", request.getBaseUrl());
+
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
         assertEquals(1, headers.size());
@@ -115,6 +138,8 @@ class CurlParserTest {
         assertEquals("https", request.getProtocol());
         assertEquals("example.com", request.getHost());
         assertEquals("/api/endpoint", request.getPath());
+
+        assertEquals("https://example.com/api/endpoint", request.getBaseUrl());
 
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
@@ -138,6 +163,8 @@ class CurlParserTest {
         assertEquals("example.com", request.getHost());
         assertEquals("/api/endpoint", request.getPath());
 
+        assertEquals("https://example.com/api/endpoint", request.getBaseUrl());
+
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
         assertEquals(1, headers.size());
@@ -160,6 +187,8 @@ class CurlParserTest {
         assertEquals("https", request.getProtocol());
         assertEquals("api.sendgrid.com", request.getHost());
         assertEquals("/v3/templates", request.getPath());
+
+        assertEquals("https://api.sendgrid.com/v3/templates", request.getBaseUrl());
 
         // Test headers
         List<HttpHeader> headers = request.getHeaders();
@@ -187,6 +216,8 @@ class CurlParserTest {
         assertEquals("https", request.getProtocol());
         assertEquals("api.github.com", request.getHost());
         assertEquals("/repos/OWNER/REPO/contents/PATH", request.getPath());
+
+        assertEquals("https://api.github.com/repos/OWNER/REPO/contents/PATH", request.getBaseUrl());
 
         // Test headers
         List<HttpHeader> headers = request.getHeaders();

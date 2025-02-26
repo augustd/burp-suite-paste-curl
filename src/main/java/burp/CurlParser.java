@@ -1,7 +1,9 @@
 package burp;
 
+import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpHeader;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -15,41 +17,48 @@ import java.util.regex.Pattern;
 public class CurlParser {
 
     public static CurlRequest parseCurlCommand(String curlCommand) {
+        return parseCurlCommand(curlCommand, null);
+    }
+
+    public static CurlRequest parseCurlCommand(String curlCommand, MontoyaApi api) {
+
+        if (api != null) api.logging().logToOutput("CurlParser.parseCurlCommand(): " + curlCommand);
 
         String requestMethod = "GET";
         String protocol = null;
         String host = null;
         String path = null;
+        Integer port = null;
         List<HttpHeader> headers = new ArrayList<>();
         String body = "";
 
         // Extract request method
         Pattern methodPattern = Pattern.compile("-X\\s+([A-Z]+)");
         Matcher methodMatcher = methodPattern.matcher(curlCommand);
-
         if (methodMatcher.find()) {
             requestMethod = methodMatcher.group(1);
         }
 
-        // Extract protocol
-        Pattern protocolPattern = Pattern.compile("(https?)://");
-        Matcher protocolMatcher = protocolPattern.matcher(curlCommand);
-        if (protocolMatcher.find()) {
-            protocol = protocolMatcher.group(1);
-        }
+        // Extract full URL
+        Pattern urlPattern = Pattern.compile("(['\"]?)(https?://[^\\s'\"]+)(\\1)");
+        Matcher matcher = urlPattern.matcher(curlCommand);
+        if (matcher.find()) {
+            String extractedUrl = matcher.group(2);
 
-        // Extract host
-        Pattern hostPattern = Pattern.compile("['\"]?[^:]+://([^/]+)/");
-        Matcher hostMatcher = hostPattern.matcher(curlCommand);
-        if (hostMatcher.find()) {
-            host = hostMatcher.group(1);
-        }
+            try {
+                URL url = new URL(extractedUrl);
 
-        // Extract path
-        Pattern pathPattern = Pattern.compile("['\"]?[^:]+://[^/]+(/[^'\" ]+)(?:['\"]|(?=\\s|$))");
-        Matcher pathMatcher = pathPattern.matcher(curlCommand);
-        if (pathMatcher.find()) {
-            path = pathMatcher.group(1).trim();
+                protocol = url.getProtocol();
+                host = url.getHost();
+                path = url.getPath();
+                port = url.getPort();
+            } catch (java.net.MalformedURLException mue) {
+                if (api != null) api.logging().logToError(mue);
+
+                return null;
+            }
+        } else {
+            return null;
         }
 
         // Extract headers
@@ -79,8 +88,10 @@ public class CurlParser {
             }
         }
 
+        if (api != null) api.logging().logToOutput("CurlParser.parseCurlCommand() complete: host: " + host + " path: " + path);
+
         if (host != null && path != null) {
-            return new CurlRequest(requestMethod, protocol, host, path, headers, body);
+            return new CurlRequest(requestMethod, protocol, host, path, port, headers, body);
         } else {
             return null;
         }
@@ -90,17 +101,32 @@ public class CurlParser {
         private final String method;
         private final String protocol;
         private final String host;
+        private final Integer port;
         private final String path;
         private final List<HttpHeader> headers;
         private final String body;
 
-        public CurlRequest(String method, String protocol, String host, String path, List<HttpHeader> headers, String body) {
+        public CurlRequest(String method, String protocol, String host, String path, Integer port, List<HttpHeader> headers, String body) {
             this.method = method;
             this.protocol = protocol;
             this.host = host;
             this.path = path;
+            this.port = port;
             this.headers = headers;
             this.body = body;
+        }
+
+        public String getBaseUrl() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(getProtocol())
+                   .append("://")
+                   .append(getHost());
+
+            if (port != -1 && port != 80 && port != 443) builder.append(":").append(getPort());
+
+            builder.append(getPath());
+
+            return builder.toString();
         }
 
         public String getMethod() {
@@ -114,7 +140,13 @@ public class CurlParser {
         }
 
         public String getPath() {
+            if (path == null || "".equals(path)) return "/";
+
             return path;
+        }
+
+        public Integer getPort() {
+            return port;
         }
 
         public List<HttpHeader> getHeaders() {
