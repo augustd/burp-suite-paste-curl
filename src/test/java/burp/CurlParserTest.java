@@ -236,4 +236,43 @@ class CurlParserTest {
         assertEquals("2022-11-28", header2.value());
     }
 
+    @Test
+    public void parseAmplitudeMultiline() {
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand("""
+    curl --location --request POST 'https://api.amplitude.com/2/httpapi' \\
+    --header 'Content-Type: application/json' \\
+    --data-raw '{
+        "api_key": "YOUR_API_KEY",
+        "events": [
+            {
+                "user_id": "12345",
+                "event_type": "watch_tutorial",
+                "user_properties": {
+                    "Cohort": "Test A"
+                },
+                "country": "United States",
+                "ip": "127.0.0.1",
+                "time": 1396381378123
+            }
+        ]
+    }'
+    """);
+
+        assertNotNull(request);
+        assertEquals("POST", request.getMethod());
+        assertEquals("https", request.getProtocol());
+        assertEquals("api.amplitude.com", request.getHost());
+        assertEquals("/2/httpapi", request.getPath());
+
+        assertEquals("https://api.amplitude.com/2/httpapi", request.getBaseUrl());
+
+        // Test headers
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(1, headers.size());
+
+        HttpHeader header0 = headers.get(0);
+        assertEquals("Content-Type", header0.name());
+        assertEquals("application/json", header0.value());
+    }
+
 }

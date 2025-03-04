@@ -62,7 +62,7 @@ public class CurlParser {
         }
 
         // Extract headers
-        Pattern headerPattern = Pattern.compile("-H ['\"]?([^'\"]+)['\"]?");
+        Pattern headerPattern = Pattern.compile("(?:--header|-H) ['\"]?([^'\"]+)['\"]?");
         Matcher headerMatcher = headerPattern.matcher(curlCommand);
         while (headerMatcher.find()) {
             String header = headerMatcher.group(1);
@@ -77,7 +77,7 @@ public class CurlParser {
         }
 
         // Extract request body
-        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+(['\"])(.*?)(\\1)");
+        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+(['\"])(.*?)(\\1)", Pattern.DOTALL);
         Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
 
         if (bodyMatcher.find()) {
@@ -88,7 +88,10 @@ public class CurlParser {
             }
         }
 
-        if (api != null) api.logging().logToOutput("CurlParser.parseCurlCommand() complete: host: " + host + " path: " + path);
+        if (api != null) {
+            api.logging().logToOutput("CurlParser.parseCurlCommand() complete: host: " + host + " path: " + path);
+            api.logging().logToOutput("Body: " + body);
+        }
 
         if (host != null && path != null) {
             return new CurlRequest(requestMethod, protocol, host, path, port, headers, body);
