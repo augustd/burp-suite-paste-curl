@@ -57,9 +57,7 @@ public class MenuItemsProvider implements ContextMenuItemsProvider {
 
         HttpService service = HttpService.httpService(curlRequest.getBaseUrl());
 
-        HttpRequest output = HttpRequest.httpRequest()
-                .withHeader("Host", curlRequest.getHost())
-                .withPath(curlRequest.getPath())
+        HttpRequest output = HttpRequest.httpRequestFromUrl(curlRequest.getBaseUrl())
                 .withMethod(curlRequest.getMethod())
                 .withBody(curlRequest.getBody());
 

@@ -275,4 +275,17 @@ class CurlParserTest {
         assertEquals("application/json", header0.value());
     }
 
+    @Test
+    public void parseGetWithQuery() {
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl --location -g --request POST 'https://api.company.com/v1/api?parameter=value&api_key=123456789'");
+
+        assertNotNull(request);
+        assertEquals("POST", request.getMethod());
+        assertEquals("https", request.getProtocol());
+        assertEquals("api.company.com", request.getHost());
+        assertEquals("/v1/api", request.getPath());
+        assertEquals("parameter=value&api_key=123456789", request.getQuery());
+
+        assertEquals("https://api.company.com/v1/api?parameter=value&api_key=123456789", request.getBaseUrl());
+    }
 }
