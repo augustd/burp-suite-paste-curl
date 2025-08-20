@@ -1,0 +1,14 @@
+
+curl 'https://company.co/api/whoami' -H 'Authorization: Bearer XXX'
+
+curl "https://company.co/api/whoami" -H "Authorization: Bearer XXX"
+
+curl https://company.co/api/whoami -H 'Authorization: Bearer XXX'
+
+curl https://company.co/api/endpoint -H 'Authorization: Bearer XXX' -H 'content-type: application/json' -H 'accept: application/json, text/plain, */*'
+
+curl 'https://example.com/api/endpoint' -H 'Content-Type: application/json' --data-raw '{"key": "value"}'
+
+curl -X PUT 'https://example.com/api/endpoint' -H 'Content-Type: application/json' --data-raw '{"key": "value"}'
+
+curl -X "GET" "https://api.sendgrid.com/v3/templates" -H "Authorization: Bearer Your.API.Key-HERE" -H "Content-Type: application/json"
