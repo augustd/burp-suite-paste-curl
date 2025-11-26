@@ -130,6 +130,46 @@ class CurlParserTest {
     }
 
     @Test
+    public void parseSingleCookie() {
+        CurlParser.CurlRequest request =
+                CurlParser.parseCurlCommand("curl https://example.com/api -b \"session=abc123; theme=dark\"");
+        assertEquals("https://example.com/api", request.getBaseUrl());
+
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(1, headers.size());
+        HttpHeader cookieHeader = headers.get(0);
+        assertEquals("Cookie", cookieHeader.name());
+        assertEquals("session=abc123; theme=dark", cookieHeader.value());
+    }
+
+    @Test
+    public void parseMultipleCookies() {
+        CurlParser.CurlRequest request =
+                CurlParser.parseCurlCommand("curl https://example.com -b session=abc123 -b 'theme=dark'");
+        assertEquals("https://example.com/", request.getBaseUrl());
+
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(1, headers.size());
+        HttpHeader cookieHeader = headers.get(0);
+        assertEquals("Cookie", cookieHeader.name());
+        assertEquals("session=abc123; theme=dark", cookieHeader.value());
+    }
+
+    @Test
+    public void parseMultipleCookiesWithTrailingSemicolons() {
+        CurlParser.CurlRequest request =
+                CurlParser.parseCurlCommand("curl https://example.com -b \"session=abc123;\" -b theme=dark --cookie 'lang=en;'");
+        assertEquals("https://example.com/", request.getBaseUrl());
+
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(1, headers.size());
+        HttpHeader cookieHeader = headers.get(0);
+        assertEquals("Cookie", cookieHeader.name());
+        // parser should normalize and remove extra semicolons
+        assertEquals("session=abc123; theme=dark; lang=en", cookieHeader.value());
+    }
+
+    @Test
     public void parseDoubleQuotedJson() {
         CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl 'https://example.com/api/endpoint' -H 'Content-Type: application/json' -d \"{'key': 'value'}\"");
 

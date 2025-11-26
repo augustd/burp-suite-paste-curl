@@ -101,6 +101,34 @@ public class CurlParser {
             }
         }
 
+        //Extract cookies - Montoya treats cookies as just another header
+        Pattern cookiePattern = Pattern.compile("(?:--cookie|-b)\\s+(?:['\"]([^'\"]+)['\"]|(\\S+))");
+        Matcher cookieMatcher = cookiePattern.matcher(curlCommand);
+
+        List<String> cookieValues = new ArrayList<>();
+        while (cookieMatcher.find()) {
+            String value = cookieMatcher.group(1) != null
+                    ? cookieMatcher.group(1)
+                    : cookieMatcher.group(2);
+            cookieValues.add(value);
+        }
+
+        if (!cookieValues.isEmpty()) {
+            List<String> normalized = new ArrayList<>();
+            for (String c : cookieValues) {
+                // Trim spaces and remove trailing semicolons/spaces
+                String cleaned = c.trim().replaceAll("[;\\s]+$", "");
+                normalized.add(cleaned);
+            }
+
+            // Combine all cookies using a single "; " separator
+            String combinedCookies = String.join("; ", normalized);
+
+            // Add as a Cookie header
+            HttpHeader httpHeader = new HttpHeaderImpl("Cookie", combinedCookies);
+            headers.add(httpHeader);
+        }
+
         // Extract request body
         Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+(['\"])(.*?)(\\1)", Pattern.DOTALL);
         Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
