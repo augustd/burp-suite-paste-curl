@@ -194,6 +194,38 @@ class CurlParserTest {
     }
 
     @Test
+    public void parseDollarQuotedBody() {
+        String cmd = ""
+                + "curl 'https://example.com/api' "
+                + "-H 'Content-Type: application/json' "
+                + "--data-raw $'{\"operationName\":\"GetUser\",\"variables\":{\"id\":\"1234\"},"
+                + "\"query\":\"query GetUser($id: ID!){\\\\n  user(id: $id){\\\\n    id\\\\n  }\\\\n}\"}'";
+
+        CurlParser.CurlRequest request = CurlParser.parseCurlCommand(cmd);
+
+        // Basic request info
+        assertNotNull(request);
+        assertEquals("POST", request.getMethod());
+        assertEquals("https", request.getProtocol());
+        assertEquals("example.com", request.getHost());
+        assertEquals("/api", request.getPath());
+        assertEquals("https://example.com/api", request.getBaseUrl());
+
+        // Header check
+        List<HttpHeader> headers = request.getHeaders();
+        assertEquals(1, headers.size());
+        HttpHeader header = headers.get(0);
+        assertEquals("Content-Type", header.name());
+        assertEquals("application/json", header.value());
+
+        // Body check – after unescapeJava() it should produce a clean JSON payload
+        String body = request.getBody();
+        assertTrue(body.contains("\"operationName\":\"GetUser\""));
+        assertTrue(body.contains("\"variables\""));
+        assertTrue(body.contains("\"query\":\"query GetUser($id: ID!)"));
+    }
+
+    @Test
     public void parseExplicitPut() {
         CurlParser.CurlRequest request = CurlParser.parseCurlCommand("curl -X PUT 'https://example.com/api/endpoint' -H 'Content-Type: application/json' --data-raw '{\"key\": \"value\"}'");
 

@@ -4,6 +4,7 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpHeader;
 
 import java.net.URL;
+import org.apache.commons.text.StringEscapeUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -130,11 +131,15 @@ public class CurlParser {
         }
 
         // Extract request body
-        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+(['\"])(.*?)(\\1)", Pattern.DOTALL);
+        Pattern bodyPattern = Pattern.compile("(?:--data-raw|-d)\\s+\\$?(['\"])(.*?)(\\1)", Pattern.DOTALL);
         Matcher bodyMatcher = bodyPattern.matcher(curlCommand);
 
         if (bodyMatcher.find()) {
-            body = bodyMatcher.group(2);
+            String rawBody = bodyMatcher.group(2);
+
+            // Turn sequences like \\n and \\uXXXX into real newlines / code points
+            body = StringEscapeUtils.unescapeJava(rawBody);
+
             // If -X option is not specified and --data-raw is present, assume it's a POST request
             if (requestMethod == null || "GET".equals(requestMethod)) {
                 requestMethod = "POST";
